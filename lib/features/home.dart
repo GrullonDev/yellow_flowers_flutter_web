@@ -161,13 +161,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Future<void> _compartirPorWhatsApp() async {
     final String urlGif =
         'https://media.giphy.com/media/3oKIPnAiaMCws8nOsE/giphy.gif';
+    final String urlImagenFlores =
+        'https://images.unsplash.com/photo-1597848212624-a19eb35e2651?auto=format&fit=crop&w=1000&q=80';
 
     final String urlWebActual = Uri.base.toString();
 
     final String mensaje =
         '¡Hola! Te comparto esta sorpresa de Lluvia de Flores Amarillas 🌻💛:\n\n'
         'Míralo aquí en vivo: $urlWebActual\n'
-        'Y mira este detalle animado en GIF: $urlGif';
+        '🖼️ Imagen del detalle: $urlImagenFlores';
 
     final urlWhatsApp = Uri.parse(
       'https://api.whatsapp.com/send?text=${Uri.encodeComponent(mensaje)}',
