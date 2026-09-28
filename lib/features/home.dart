@@ -3,6 +3,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
@@ -155,6 +158,29 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     return 'Para ti';
   }
 
+  Future<void> _compartirPorWhatsApp() async {
+    final String urlGif =
+        'https://media.giphy.com/media/3oKIPnAiaMCws8nOsE/giphy.gif';
+
+    final String urlWebActual = Uri.base.toString();
+
+    final String mensaje =
+        '¡Hola! Te comparto esta sorpresa de Lluvia de Flores Amarillas 🌻💛:\n\n'
+        'Míralo aquí en vivo: $urlWebActual\n'
+        'Y mira este detalle animado en GIF: $urlGif';
+
+    final urlWhatsApp = Uri.parse(
+      'https://api.whatsapp.com/send?text=${Uri.encodeComponent(mensaje)}',
+    );
+
+    // 5. Lanzar WhatsApp
+    if (await canLaunchUrl(urlWhatsApp)) {
+      await launchUrl(urlWhatsApp, mode: LaunchMode.externalApplication);
+    } else {
+      debugPrint('No se pudo abrir WhatsApp');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Formatear los días, horas, minutos y segundos restantes
@@ -279,6 +305,18 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               ),
             ),
           ],
+        ),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: _compartirPorWhatsApp,
+          backgroundColor: Colors.green,
+          icon: Icon(Icons.share, color: Colors.white),
+          label: Text(
+            'Compartir GIF por WhatsApp',
+            style: GoogleFonts.gabarito(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
       ),
     );
