@@ -13,8 +13,11 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late AnimationController _controller;
+  late AnimationController _rainController;
+  List<FallingFlower> _fallingFlowers = [];
+  final _random = math.Random();
   late String _nombreDestinatario;
 
   late Timer _timer;
@@ -26,6 +29,10 @@ class _MyHomePageState extends State<MyHomePage>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2000),
+    );
+    _rainController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 6),
     );
 
     _nombreDestinatario = obtenerNombrePersonalizado();
@@ -43,17 +50,15 @@ class _MyHomePageState extends State<MyHomePage>
   @override
   void dispose() {
     _controller.dispose();
-    _timer
-        .cancel(); // Importante cancelar el timer para evitar fugas de memoria
+    _rainController.dispose();
+    _timer.cancel();
     super.dispose();
   }
 
   void _calcularTiempoRestante() {
     final ahora = DateTime.now();
-    // Definimos el 21 de septiembre del año actual
     var objetivo = DateTime(ahora.year, 9, 21);
 
-    // Si ya pasó el 21 de septiembre este año, apuntamos al próximo año
     if (ahora.isAfter(objetivo)) {
       objetivo = DateTime(ahora.year + 1, 9, 21);
     }
@@ -64,7 +69,68 @@ class _MyHomePageState extends State<MyHomePage>
   }
 
   void _startYellowFlowersRain() {
-    // Configuración de tu confetti si lo usas
+    setState(() {
+      _fallingFlowers = List.generate(
+        30,
+        (_) => FallingFlower(
+          x: _random.nextDouble(),
+          size: 20 + _random.nextDouble() * 20,
+          delay: _random.nextDouble() * 0.5,
+          spin: (_random.nextDouble() - 0.5) * 4 * math.pi,
+          sway: 20 + _random.nextDouble() * 40,
+          symbol: _random.nextBool() ? '🌻' : '💛',
+        ),
+      );
+    });
+    _rainController.forward(from: 0);
+  }
+
+  Widget _buildFlowersRain() {
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return AnimatedBuilder(
+              animation: _rainController,
+              builder: (context, _) {
+                final t = _rainController.value;
+                return Stack(
+                  children: _fallingFlowers.map((flower) {
+                    // Progreso propio de cada flor según su retraso
+                    final p = ((t - flower.delay) / (1 - flower.delay))
+                        .clamp(0.0, 1.0);
+                    if (p <= 0 || p >= 1) return const SizedBox.shrink();
+
+                    final top = -flower.size +
+                        p * (constraints.maxHeight + flower.size * 2);
+                    final left = flower.x * constraints.maxWidth +
+                        math.sin(p * 2 * math.pi) * flower.sway;
+
+                    return Positioned(
+                      top: top,
+                      left: left,
+                      child: Opacity(
+                        opacity: p > 0.85 ? (1 - p) / 0.15 : 1,
+                        child: Transform.rotate(
+                          angle: p * flower.spin,
+                          child: Transform.scale(
+                            scale: 0.5 + (p * 1.2).clamp(0.0, 0.5),
+                            child: Text(
+                              flower.symbol,
+                              style: TextStyle(fontSize: flower.size),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
+            );
+          },
+        ),
+      ),
+    );
   }
 
   void _startFlowerShow() {
@@ -99,6 +165,7 @@ class _MyHomePageState extends State<MyHomePage>
         backgroundColor: const Color(0xFF212121),
         body: Stack(
           children: [
+            _buildFlowersRain(),
             Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -222,6 +289,8 @@ class FlowerPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
+    // Escala relativa al tamaño de diseño original (180x180)
+    final scale = size.shortestSide / 180;
     final paintPetal = Paint()
       ..color = Colors.amberAccent
       ..style = PaintingStyle.fill;
@@ -242,14 +311,18 @@ class FlowerPainter extends CustomPainter {
       canvas.rotate(angle);
       final path = Path();
       path.addOval(
-        Rect.fromCenter(center: const Offset(0, -45), width: 25, height: 55),
+        Rect.fromCenter(
+          center: Offset(0, -45 * scale),
+          width: 25 * scale,
+          height: 55 * scale,
+        ),
       );
       canvas.drawPath(path, paintPetal);
       canvas.restore();
     }
 
     if (centerProgress > 0) {
-      canvas.drawCircle(center, 22 * centerProgress, paintCenter);
+      canvas.drawCircle(center, 22 * scale * centerProgress, paintCenter);
     }
   }
 
@@ -323,6 +396,23 @@ class InteractiveClickEffectState extends State<InteractiveClickEffect> {
       ),
     );
   }
+}
+
+class FallingFlower {
+  final double x; // posición horizontal relativa (0..1)
+  final double size;
+  final double delay; // retraso relativo (0..1) dentro de la animación
+  final double spin; // rotación total durante la caída
+  final double sway; // amplitud del balanceo horizontal
+  final String symbol;
+  FallingFlower({
+    required this.x,
+    required this.size,
+    required this.delay,
+    required this.spin,
+    required this.sway,
+    required this.symbol,
+  });
 }
 
 class Particle {
