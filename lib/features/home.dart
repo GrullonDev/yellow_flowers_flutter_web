@@ -167,9 +167,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     final String urlWebActual = Uri.base.toString();
 
     final String mensaje =
-        '¡Hola! Te comparto esta sorpresa de Lluvia de Flores Amarillas 🌻💛:\n\n'
-        'Míralo aquí en vivo: $urlWebActual\n'
-        '🖼️ Imagen del detalle: $urlImagenFlores';
+        '¡Hola! Te comparto esta sorpresa especial de Lluvia de Flores Amarillas 🌻💛\n\n$urlWebActual';
 
     final urlWhatsApp = Uri.parse(
       'https://api.whatsapp.com/send?text=${Uri.encodeComponent(mensaje)}',
