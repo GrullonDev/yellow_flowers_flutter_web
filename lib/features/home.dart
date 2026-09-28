@@ -12,8 +12,7 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage>
-    with TickerProviderStateMixin {
+class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   late AnimationController _controller;
   late AnimationController _rainController;
   List<FallingFlower> _fallingFlowers = [];
@@ -97,13 +96,17 @@ class _MyHomePageState extends State<MyHomePage>
                 return Stack(
                   children: _fallingFlowers.map((flower) {
                     // Progreso propio de cada flor según su retraso
-                    final p = ((t - flower.delay) / (1 - flower.delay))
-                        .clamp(0.0, 1.0);
+                    final p = ((t - flower.delay) / (1 - flower.delay)).clamp(
+                      0.0,
+                      1.0,
+                    );
                     if (p <= 0 || p >= 1) return const SizedBox.shrink();
 
-                    final top = -flower.size +
+                    final top =
+                        -flower.size +
                         p * (constraints.maxHeight + flower.size * 2);
-                    final left = flower.x * constraints.maxWidth +
+                    final left =
+                        flower.x * constraints.maxWidth +
                         math.sin(p * 2 * math.pi) * flower.sway;
 
                     return Positioned(
